@@ -22,8 +22,7 @@
 #include <chrono>
 #include <numeric>
 #include <random>
-#include <unordered_set>  
-#include <queue>
+#include <unordered_set>
 
 namespace fuzzer {
 
@@ -154,16 +153,6 @@ struct EntropicOptions {
   bool ScalePerExecTime;
 };
 
-//
-struct InputIndexScore {
-    size_t Index;
-    int Score;
-    bool operator<(const InputIndexScore& a) const {
-        return Score < a.Score;
-    }
-};
-//
-
 class InputCorpus {
   static const uint32_t kFeatureSetSize = 1 << 21;
   static const uint8_t kMaxMutationFactor = 20;
@@ -256,21 +245,9 @@ public:
     DistributionNeedsUpdate = true;
     PrintCorpus();
     // ValidateFeatureSet();
-//
-    Inputs.push_back(new InputInfo());
-    size_t NewIdx = Inputs.size() - 1;
-    int score = GetScore(*Inputs[NewIdx]);
-    PriorityQueue.push({NewIdx, score});
-//
-
     return &II;
   }
 
-//
-  int GetScore(const InputInfo& input) {
-    return input.NumFeatures; 
-  }
-//
   // Debug-only
   void PrintUnit(const Unit &U) {
     if (!FeatureDebug) return;
@@ -340,16 +317,6 @@ public:
 
   // Returns an index of random unit from the corpus to mutate.
   size_t ChooseUnitIdxToMutate(Random &Rand) {
-//
-    while (!PriorityQueue.empty()) {
-        auto top = PriorityQueue.top();
-        if (top.Index >= Inputs.size() || Inputs[top.Index]->U.empty()) {
-            PriorityQueue.pop();
-        } else {
-            return top.Index;
-        }
-    }
-//
     UpdateCorpusDistribution(Rand);
     size_t Idx = static_cast<size_t>(CorpusDistribution(Rand));
     assert(Idx < Inputs.size());
@@ -605,9 +572,7 @@ private:
 
   std::unordered_set<std::string> Hashes;
   std::vector<InputInfo *> Inputs;
-//
-  std::priority_queue<InputIndexScore> PriorityQueue;
-//
+
   size_t NumAddedFeatures = 0;
   size_t NumUpdatedFeatures = 0;
   uint32_t InputSizesPerFeature[kFeatureSetSize];
